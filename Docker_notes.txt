@@ -1,0 +1,122 @@
+vaishali@fandsindia.com
+
+Docker
+
+docker run hello-world
+docker images
+docker ps
+docker run -p 8086:8080
+	-> http://localhost:8086
+
+docker pull mysql:5.5
+
+docker run --name tom1 -d -p 8080:8080 --link mysql:myrdbms  bitnami/tomcat
+docker run --name tom1 -d -p 8080:8080 --link mysql:myrdbms  newimg1
+docker.hub
+
+create table dept1 (deptno varchar(1), dname varchar(20))
+insert into dept1 values ('1','aaa')
+
+Deploy some application on tomat
+
+1. Create image:
+	- from bitnami\tomcat
+	- copy war in tomcat/data
+	- build image using - docker build . -t <imagename>
+2. start images - docker run <imagename>
+3. start mysql using  - docker run --name mysql -e MYSQL_ROOT_PASSWORD=mypass -d mysql:5.5
+4. link db to new image - docker run --name tom3 -d -p 8088:8080 --link mysql:myrdbms  newimg1
+
+========================================================================
+(Katacoda for practice k8s)
+Kubernates setup
+1. install n config minikube
+	- download minikube-windows-amd64.exe
+	- install Chocolatey
+		(https://chocolatey.org/install)
+	- choco install minikube
+	- choco install kubernetes-cli
+	- minikube start
+	- kubectl get nodes
+	
+Kubernates Architecture - https://kubernetes.io/docs/concepts/
+https://x-team.com/blog/introduction-kubernetes-architecture/
+	
+kubectl run tomcat --image=bitnami/tomcat --port 8080
+kubectl expose deployment tomcat --port 8080 --type=NodePort
+export PORT=$(kubectl get svc tomcat -o go-template='{{range.spec.ports}}{{if .nodePort}}{{.nodePort}}{{"\n"}}{{end}}{{end}}')
+curl host01:$(kubectl get svc tomcat -o go-template='{{range.spec.ports}}{{if .nodePort}}{{.nodePort}}{{"\n"}}{{end}}{{end}}')
+	
+Deploymnets
+kubectl run name --image=gcr.io/google-samples/kubernetes-bootcamp:v1 --port=8080
+kubectl get deployments
+kubectl proxy
+
+curl http://localhost:8001/version
+
+kubectl cp bitnami/tomcat/data/ROOT/index.jsp 
+kubectl cp  tomcat-544dcbcd69-9kv5c:bitnami/tomcat/data/ROOT/index.jsp ./
+minikube service tomcat
+
+
+===========================================================================
+AWS
+Configuare AWS CLI
+	aws configure
+Installing kops + kubectl
+	Kubernetes Operations, kops (https://github.com/kubernetes/kops/releases)
+	Kubernetes command-line tool, kubectl(choco install)
+Setting Up the Kubernetes Cluster
+  aws s3api create-bucket --bucket yugakadam.tk-state-store --region eu-central-1 --create-bucket-configuration LocationConstraint=eu-central-1
+  aws s3api put-bucket-versioning --bucket yugakadam.tk-state-store  --versioning-configuration Status=Enabled
+  set KOPS_CLUSTER_NAME=yugakadam.tk
+  set KOPS_STATE_STORE=s3://yugakadam.tk-state-store
+
+
+
+ssh-keygen -t rsa -C "yugandharakadam29@gmail.com"
+kops create secret --name yugakadam.tk sshpublickey admin -i ~/.ssh/id_rsa.pub
+kops create cluster --node-count=2 --node-size=t2.micro --zones=eu-central-1a
+kops update cluster --name %KOPS_CLUSTER_NAME% --yes 
+
+kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+
+aws eks
+aws refernce to eks - https://aws.amazon.com/blogs/compute/kubernetes-clusters-aws-kops/
+					  https://www.youtube.com/watch?v=4YBzMZY4QX4 - check comments below the video
+					  
+Create roles in aws IAM using k8s : https://medium.com/merapar/securing-iam-access-in-kubernetes-cfbcc6954de					  
+
+=====================================================================================
+Security :https://docs.bitnami.com/kubernetes/how-to/configure-rbac-in-your-kubernetes-cluster/
+Configure RBAC In Your Kubernetes Cluster
+Create The Office Namespace
+	- kubectl create namespace yuga
+	create folder C:\Users\tk9kxh.PLM\rbac
+	C:\Users\tk9kxh.PLM\rbac> 
+	Create The User Credentials - openssl genrsa -out yuga.key 2048
+
+Create cert request
+	- openssl req -new -key yuga.key -out yuga.csr -subj "//CN=yuga \O=bitnami"
+	
+	- openssl x509 -req -days 3650 -in yuga.csr -signkey yuga.key -out yuga.crt
+
+	- kubectl config set-credentials yuga --client-certificate=C:/Users/tk9kxh.PLM/rbac/yuga.crt  --client-key=C:/Users/tk9kxh.PLM/rbac/yuga.key
+	- kubectl config set-context yuga-context --cluster=keystosuccess.in --namespace=yuga --user=keystosuccess.in
+	
+Create roles
+	kubectl create -f role.yml
+	create role and rolebinding
+	then try to access get pods
+	
+	- kubectl --context=yuga-context run --image bitnami/dokuwiki mydokuwiki
+	- kubectl --context=employee-context get pods
+	
+	kubectl create role test-role --verb=get --verb=list --verb=watch --resource=pods
+	kubectl create rolebinding admin --clusterrole=test-role --user=yuga --group=group1
+
+ConfigMap
+	kubectl create secret generic apikey --from-literal=API_KEY=123–456
+	kubectl create configmap language --from-literal=LANGUAGE=English
+	kubectl get secret
+	kubectl get configmap	

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auto-dep
+  labels:
+    app: aulb
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: aulb
+  template:
+    metadata:
+      labels:
+        app: aulb
+    spec:
+      containers:
+      - name: tomcat
+        image: bitnami/tomcat:latest
+        ports:
+        - containerPort: 8080

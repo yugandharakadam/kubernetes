@@ -1,0 +1,11 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: my-serv
+spec:
+  selector:
+    app: auto-dep
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 9376

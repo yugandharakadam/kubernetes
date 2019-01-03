@@ -1,0 +1,53 @@
+Configuare AWS CLI
+	aws configure
+Installing kops + kubectl
+	Kubernetes Operations, kops (https://github.com/kubernetes/kops/releases)
+	Kubernetes command-line tool, kubectl(choco install)
+Setting Up the Kubernetes Cluster
+  aws s3api create-bucket --bucket vai301118-kops-state-store --region us-east-1
+  aws s3api put-bucket-versioning --bucket vai301118-kops-state-store  --versioning configuration Status=Enabled
+  set KOPS_CLUSTER_NAME=vaishalitapaswi.tk
+  set KOPS_STATE_STORE=s3://vai301118-kops-state-store
+
+create a new dns name (freenom)
+create hosted zone (public)
+create cluster file
+kops create cluster --node-count=2 --node-size=t2.micro --zones=us-east-1
+  check s3 bucket for file
+SSH public key must be specified when running with AWS 
+(create with `kops create secret --name vaishalitapaswi.tk sshpublickey admin -i ~/.ssh/id_rsa.pub`)
+	to generate ssh
+	ssh-keygen -t rsa -C "vaishali@fandsindia.com"
+to create cluster
+	kops update cluster --name %KOPS_CLUSTER_NAME% --yes
+after some time
+	 kops validate cluster
+(modify dns names entry for your domain)
+
+Deploy dashboard
+kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+(http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/node?namespace=default)
+
+login to dashboard
+https://api.vaishalitapaswi.tk
+(to get secret for admin
+kops get secrets admin--type secret -oplaintext)
+
+to get the token for user kube
+kops get secrets kube --type secret -oplaintext
+
+deployment
+	Deploying Nginx Container
+   kubectl run sample-nginx --image=nginx --replicas=2 --port=80
+   kubectl get pods
+   kubectl get deployments
+   kubectl expose deployment sample-nginx --port=80 --type=LoadBalancer
+   kubectl get services -o wide
+	get load balancer details
+
+modify route53 -> create record set -> alias
+
+delete cluster 
+kops delete cluster --name %KOPS_CLUSTER_NAME% --yes
+
+
